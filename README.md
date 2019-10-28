@@ -1,3 +1,3 @@
-Countdown clock, preset for Brexit deadline so will need periodic updates.
+Moon clock
 
 (c) 2019 Andrews & Arnold Ltd, Adrian Kennard. See LICENSE file (GPL).

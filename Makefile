@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := Brexit
+PROJECT_NAME := Moon
 
 include $(IDF_PATH)/make/project.mk
 
