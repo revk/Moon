@@ -7,7 +7,7 @@ static const char TAG[] = "Moon";
 #include <driver/i2c.h>
 #include <math.h>
 #include "oled.h"
-#include "moon.h"
+#include CONFIG_MOON
 
 #define settings	\
 	s8(oledsda,27)	\
@@ -143,20 +143,30 @@ app_main ()
          int c = lunarcycle (now);
          time_t last = fullmoon (c);
          time_t next = fullmoon (c + 1);
-         double phase = (double) M_PI * 2 * (now - last) / (next - last);
-#define w (CONFIG_OLED_WIDTH/2-1)
+         float phase = (float) M_PI * 2 * (now - last) / (next - last);
+#define w (CONFIG_OLED_WIDTH/2)
          if (phase < M_PI)
          {                      // dim on right (northern hemisphere)
-            double q = (double) w * cos (phase);
-            for (int d = -w; d <= w; d++)
-               for (int x = w + q * sqrt (1 - (double)d / w * (double)d / w); x < CONFIG_OLED_WIDTH; x++)
-                  oled_set (x, w + d, oled_get (x, w + d) >> 3);
+            float q = (float) w * cos (phase);
+            for (int d = -w; d < w; d++)
+            {
+               float v = q * sqrt (1 - (float) d / w * (float) d / w) + w;
+               int l = floor (v);
+               oled_set (l, w + d, (v - (float) l) * oled_get (l, w + d));
+               for (int x = l + 1; x < CONFIG_OLED_WIDTH; x++)
+                  oled_set (x, w + d, (x + w + d) & 1 ? 0 : oled_get (x, w + d) >> 3);
+            }
          } else
          {                      // dim on left (northern hemisphere)
-            double q = -(double) w * cos (phase);
-            for (int d = -w; d <= w; d++)
-               for (int x = 0; x < w + q * sqrt (1 - (double) d / w * (double) d / w); x++)
-                  oled_set (x, w + d, oled_get (x, w + d) >> 3);
+            float q = -(float) w * cos (phase);
+            for (int d = -w; d < w; d++)
+            {
+               float v = q * sqrt (1 - (float) d / w * (float) d / w) + w;
+               int r = ceil (v);
+               oled_set (r, w + d, ((float) r - v) * oled_get (r, w + d));
+               for (int x = 0; x < r; x++)
+                  oled_set (x, w + d, (x + w + d) & 1 ? 0 : oled_get (x, w + d) >> 3);
+            }
          }
          const char *mname[] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
          oled_text (1, CONFIG_OLED_WIDTH - 4 * 6, CONFIG_OLED_HEIGHT - 8 * 1, "%04d", t.tm_year + 1900);
@@ -169,10 +179,8 @@ app_main ()
          d = next - now;
          oled_text (1, CONFIG_OLED_WIDTH - 2 * 6, 8 * 1, "%02d", d / 86400);
          oled_text (1, CONFIG_OLED_WIDTH - 4 * 6 - 2, 8 * 0, "%02d:%02d", d / 3600 % 24, d / 60 % 60);
-         oled_unlock ();
-         now = time (0);
-         sleep (60 - (now / 60 * 60));
-      } else
-         sleep (1);
+      }
+      oled_unlock ();
+      sleep (1);
    }
 }

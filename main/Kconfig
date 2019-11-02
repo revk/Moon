@@ -1,0 +1,9 @@
+menu "Moon"
+  
+        config MOON
+        string "Moon"
+        default "moon.h"
+        help
+                The moon file
+
+endmenu
