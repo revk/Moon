@@ -148,24 +148,28 @@ app_main ()
          if (phase < M_PI)
          {                      // dim on right (northern hemisphere)
             float q = (float) w * cos (phase);
-            for (int d = -w; d < w; d++)
+            for (int y = 0; y < w * 2; y++)
             {
+               float d = (float) y + 0.5 - w;
                float v = q * sqrt (1 - (float) d / w * (float) d / w) + w;
-               int l = floor (v);
-               oled_set (l, w + d, (v - (float) l) * oled_get (l, w + d));
-               for (int x = l + 1; x < CONFIG_OLED_WIDTH; x++)
-                  oled_set (x, w + d, (x + w + d) & 1 ? 0 : oled_get (x, w + d) >> 3);
+               int l = ceil (v);
+               if (l)
+                  oled_set (l - 1, y, ((float) l - v) * oled_get (l - 1, y));
+               for (int x = l; x < CONFIG_OLED_WIDTH; x++)
+                  oled_set (x, y, (x + y) & 1 ? 0 : oled_get (x, y) >> 3);
             }
          } else
          {                      // dim on left (northern hemisphere)
             float q = -(float) w * cos (phase);
-            for (int d = -w; d < w; d++)
+            for (int y = 0; y < w * 2; y++)
             {
+               float d = (float) y + 0.5 - w;
                float v = q * sqrt (1 - (float) d / w * (float) d / w) + w;
-               int r = ceil (v);
-               oled_set (r, w + d, ((float) r - v) * oled_get (r, w + d));
+               int r = floor (v);
+               if (r < w * 2)
+                  oled_set (r, y, ((float) r + 1 - v) * oled_get (r, y));
                for (int x = 0; x < r; x++)
-                  oled_set (x, w + d, (x + w + d) & 1 ? 0 : oled_get (x, w + d) >> 3);
+                  oled_set (x, y, (x + y) & 1 ? 0 : oled_get (x, y) >> 3);
             }
          }
          const char *mname[] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
