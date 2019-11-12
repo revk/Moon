@@ -144,34 +144,35 @@ app_main ()
          time_t last = fullmoon (c);
          time_t next = fullmoon (c + 1);
          float phase = (float) M_PI * 2 * (now - last) / (next - last);
-#define w (CONFIG_OLED_WIDTH/2)
+#define w ((float)CONFIG_OLED_WIDTH/2)
          if (phase < M_PI)
          {                      // dim on right (northern hemisphere)
-            float q = (float) w * cos (phase);
+            float q = w * cos (phase);
             for (int y = 0; y < w * 2; y++)
             {
                float d = (float) y + 0.5 - w;
                float v = q * sqrt (1 - (float) d / w * (float) d / w) + w;
                int l = ceil (v);
                if (l)
-                  oled_set (l - 1, y, ((float) l - v) * oled_get (l - 1, y));
+                  oled_set (l - 1, y, (1.0 - ((float) l - v)) * oled_get (l - 1, y));
                for (int x = l; x < CONFIG_OLED_WIDTH; x++)
                   oled_set (x, y, (x + y) & 1 ? 0 : oled_get (x, y) >> 3);
             }
          } else
          {                      // dim on left (northern hemisphere)
-            float q = -(float) w * cos (phase);
+            float q = -w * cos (phase);
             for (int y = 0; y < w * 2; y++)
             {
                float d = (float) y + 0.5 - w;
                float v = q * sqrt (1 - (float) d / w * (float) d / w) + w;
                int r = floor (v);
                if (r < w * 2)
-                  oled_set (r, y, ((float) r + 1 - v) * oled_get (r, y));
+                  oled_set (r, y, (1.0 - (v - r)) * oled_get (r, y));
                for (int x = 0; x < r; x++)
                   oled_set (x, y, (x + y) & 1 ? 0 : oled_get (x, y) >> 3);
             }
          }
+#undef w
          const char *mname[] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
          oled_text (1, CONFIG_OLED_WIDTH - 4 * 6, CONFIG_OLED_HEIGHT - 8 * 1, "%04d", t.tm_year + 1900);
          oled_text (1, CONFIG_OLED_WIDTH - 3 * 6, CONFIG_OLED_HEIGHT - 8 * 2, "%s", mname[t.tm_mon]);
